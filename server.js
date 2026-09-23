@@ -1,17 +1,206 @@
-const express=require("express"), multer=require("multer"), fs=require("fs"), path=require("path"), crypto=require("crypto");
-const app=express(), PORT=process.env.PORT||3000, ADMIN_PASSWORD=process.env.ADMIN_PASSWORD||"change-me";
-const DATA=path.join(__dirname,"data"), UP=path.join(DATA,"uploads"), DB=path.join(DATA,"db.json");
-fs.mkdirSync(UP,{recursive:true}); if(!fs.existsSync(DB))fs.writeFileSync(DB,JSON.stringify({files:[]},null,2));
-const read=()=>JSON.parse(fs.readFileSync(DB,"utf8")), save=x=>fs.writeFileSync(DB,JSON.stringify(x,null,2));
-const safe=n=>path.basename(n).replace(/[^\w.\- ()[\]]/g,"_");
-const storage=multer.diskStorage({destination:(r,f,c)=>c(null,UP),filename:(r,f,c)=>c(null,crypto.randomUUID()+"-"+safe(f.originalname))});
-const upload=multer({storage,limits:{files:500,fileSize:1024*1024*1024}});
-app.use(express.json()); app.use(express.static(path.join(__dirname,"public")));
-const auth=(r,s,n)=>r.headers["x-admin-token"]===ADMIN_PASSWORD?n():s.status(401).json({error:"Unauthorized"});
-app.get("/api/files",(r,s)=>s.json(read().files.map(({id,name,folder,size,uploadedAt})=>({id,name,folder,size,uploadedAt}))));
-app.post("/api/login",(r,s)=>r.body.password===ADMIN_PASSWORD?s.json({ok:true,token:ADMIN_PASSWORD}):s.status(401).json({error:"Wrong password"}));
-app.post("/api/upload",auth,upload.array("files",500),(r,s)=>{let d=read(),folder=(r.body.folder||"").trim(),added=[];(r.files||[]).forEach(f=>{let rel=f.originalname.replaceAll("\\\\","/"),item={id:crypto.randomUUID(),name:path.basename(rel),folder:folder||path.dirname(rel)==="."?"General":path.dirname(rel),size:f.size,uploadedAt:new Date().toISOString(),storedName:f.filename};d.files.push(item);added.push(item)});save(d);s.json({ok:true,added:added.length})});
-app.get("/api/download/:id",(r,s)=>{let f=read().files.find(x=>x.id===r.params.id);if(!f)return s.sendStatus(404);s.download(path.join(UP,f.storedName),f.name)});
-app.delete("/api/files/:id",auth,(r,s)=>{let d=read(),i=d.files.findIndex(x=>x.id===r.params.id);if(i<0)return s.sendStatus(404);let[f]=d.files.splice(i,1),p=path.join(UP,f.storedName);if(fs.existsSync(p))fs.unlinkSync(p);save(d);s.json({ok:true})});
-app.get("/api/health",(r,s)=>s.json({ok:true}));
-app.listen(PORT,()=>console.log("CSE Study Hub: http://localhost:"+PORT));
+const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const crypto = require("crypto");
+const { createClient } = require("@supabase/supabase-js");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
+const BUCKET = process.env.SUPABASE_BUCKET || "cse-study-hub";
+
+if (!ADMIN_PASSWORD) console.warn("WARNING: ADMIN_PASSWORD is not set.");
+if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
+  console.warn("WARNING: SUPABASE_URL or SUPABASE_SECRET_KEY is not set.");
+}
+
+const supabase = SUPABASE_URL && SUPABASE_SECRET_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    })
+  : null;
+
+app.use(express.json({ limit: "2mb" }));
+app.use(express.static(path.join(__dirname, "public")));
+
+// Files are kept in memory only long enough to upload them to Supabase.
+// Supabase is the persistent storage layer; Render's local disk is not used.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { files: 500, fileSize: 1024 * 1024 * 1024 }
+});
+
+function safePath(value = "") {
+  return value
+    .replace(/\\/g, "/")
+    .split("/")
+    .map(part => part.trim())
+    .filter(Boolean)
+    .filter(part => part !== "." && part !== "..")
+    .join("/");
+}
+
+function safeFileName(name = "file") {
+  return path.basename(name).replace(/[<>:"/\\|?*\x00-\x1F]/g, "_").trim() || "file";
+}
+
+function storagePath(folder, originalName) {
+  const relative = safePath(originalName);
+  const dir = path.posix.dirname(relative);
+  const name = safeFileName(path.posix.basename(relative));
+  return [safePath(folder), dir === "." ? "" : safePath(dir), name]
+    .filter(Boolean)
+    .join("/");
+}
+
+function publicUrl(filePath) {
+  const encoded = filePath.split("/").map(encodeURIComponent).join("/");
+  return `${SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(BUCKET)}/${encoded}`;
+}
+
+function requireStorage(res) {
+  if (!supabase) {
+    res.status(500).json({
+      error: "Supabase Storage is not configured. Check SUPABASE_URL and SUPABASE_SECRET_KEY."
+    });
+    return false;
+  }
+  return true;
+}
+
+const sessions = new Set();
+
+function auth(req, res, next) {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+  if (!token || !sessions.has(token)) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+}
+
+async function listAll(prefix = "", depth = 0) {
+  if (depth > 20) return [];
+
+  const { data, error } = await supabase.storage.from(BUCKET).list(prefix, {
+    limit: 1000,
+    offset: 0,
+    sortBy: { column: "name", order: "asc" }
+  });
+  if (error) throw error;
+
+  const result = [];
+  for (const item of data || []) {
+    const itemPath = prefix ? `${prefix}/${item.name}` : item.name;
+
+    // Supabase returns folders without an id; files have an id.
+    if (item.id) {
+      result.push({
+        id: itemPath,
+        name: item.name,
+        folder: itemPath.includes("/") ? itemPath.split("/").slice(0, -1).join("/") : "General",
+        path: itemPath,
+        size: Number(item.metadata?.size || 0),
+        uploadedAt: item.created_at || item.updated_at || null,
+        url: publicUrl(itemPath)
+      });
+    } else {
+      result.push(...await listAll(itemPath, depth + 1));
+    }
+  }
+  return result;
+}
+
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, storageConfigured: !!supabase, bucket: BUCKET });
+});
+
+app.get("/api/files", async (req, res) => {
+  if (!requireStorage(res)) return;
+  try {
+    const files = await listAll();
+    res.json(files);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Could not load files" });
+  }
+});
+
+app.post("/api/login", (req, res) => {
+  if (!ADMIN_PASSWORD) {
+    return res.status(500).json({ error: "ADMIN_PASSWORD is not configured." });
+  }
+  if (req.body?.password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Wrong password" });
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  sessions.add(token);
+  res.json({ ok: true, token });
+});
+
+app.post("/api/upload", auth, upload.array("files", 500), async (req, res) => {
+  if (!requireStorage(res)) return;
+  if (!req.files?.length) return res.status(400).json({ error: "No files selected." });
+
+  const folder = safePath(req.body?.folder || "");
+  const added = [];
+
+  try {
+    for (const file of req.files) {
+      const filePath = storagePath(folder, file.originalname);
+
+      const { error } = await supabase.storage.from(BUCKET).upload(filePath, file.buffer, {
+        contentType: file.mimetype || "application/octet-stream",
+        upsert: true
+      });
+
+      if (error) throw error;
+
+      added.push({
+        id: filePath,
+        name: path.posix.basename(filePath),
+        folder: filePath.includes("/") ? filePath.split("/").slice(0, -1).join("/") : "General",
+        size: file.size,
+        uploadedAt: new Date().toISOString()
+      });
+    }
+
+    res.json({ ok: true, added: added.length });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Upload failed" });
+  }
+});
+
+app.get("/api/download/:id(*)", async (req, res) => {
+  if (!requireStorage(res)) return;
+  const filePath = safePath(req.params.id || "");
+  if (!filePath) return res.sendStatus(404);
+
+  // The bucket is public, so let Supabase serve the file directly.
+  // This avoids using Render's temporary disk and avoids proxying large files through Node.
+  res.redirect(publicUrl(filePath));
+});
+
+app.delete("/api/files/:id(*)", auth, async (req, res) => {
+  if (!requireStorage(res)) return;
+  const filePath = safePath(req.params.id || "");
+  if (!filePath) return res.sendStatus(404);
+
+  try {
+    const { error } = await supabase.storage.from(BUCKET).remove([filePath]);
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Delete failed" });
+  }
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.listen(PORT, () => console.log(`CSE Study Hub running on port ${PORT}`));
