@@ -119,10 +119,12 @@ async function load() {
    ========================================================= */
 
 function render() {
+
     const query = $("search").value.toLowerCase();
     const selectedFolder = $("folderFilter").value;
 
     const filteredFiles = files.filter((file) => {
+
         const matchesSearch =
             !query ||
             `${file.name} ${file.folder}`
@@ -138,7 +140,7 @@ function render() {
 
 
     /* -----------------------------------------------------
-       Folder list
+       Statistics
        ----------------------------------------------------- */
 
     const folders = [
@@ -149,9 +151,24 @@ function render() {
         )
     ].sort();
 
+    $("fileCount").textContent =
+        files.length;
+
+    $("folderCount").textContent =
+        folders.length;
+
+    $("totalSize").textContent =
+        fmt(
+            files.reduce(
+                (total, file) =>
+                    total + file.size,
+                0
+            )
+        );
+
 
     /* -----------------------------------------------------
-       Folder filter dropdown
+       Folder filter
        ----------------------------------------------------- */
 
     $("folderFilter").innerHTML =
@@ -171,112 +188,345 @@ function render() {
 
 
     /* -----------------------------------------------------
-       Statistics
+       Explorer state
        ----------------------------------------------------- */
 
-    $("fileCount").textContent = files.length;
-
-    $("folderCount").textContent = folders.length;
-
-    $("totalSize").textContent = fmt(
-        files.reduce(
-            (total, file) => total + file.size,
-            0
-        )
-    );
+    if (!window.explorerPath) {
+        window.explorerPath = [];
+    }
 
 
     /* -----------------------------------------------------
-       Group files by folder
+       Build folder tree
        ----------------------------------------------------- */
 
-    const grouped = {};
+    const tree = {};
+
 
     filteredFiles.forEach((file) => {
-        const folder = file.folder || "General";
 
-        if (!grouped[folder]) {
-            grouped[folder] = [];
+        const folderPath =
+            file.folder || "General";
+
+        const parts =
+            folderPath
+                .split("/")
+                .filter(Boolean);
+
+        let current = tree;
+
+        parts.forEach((part) => {
+
+            if (!current[part]) {
+                current[part] = {
+                    folders: {},
+                    files: []
+                };
+            }
+
+            current =
+                current[part].folders;
+        });
+
+    });
+
+
+    /* -----------------------------------------------------
+       Current explorer path
+       ----------------------------------------------------- */
+
+    const currentPath =
+        window.explorerPath.join("/");
+
+
+    let currentNode = tree;
+
+
+    if (window.explorerPath.length) {
+
+        for (
+            const part of window.explorerPath
+        ) {
+
+            if (
+                currentNode[part] &&
+                currentNode[part].folders
+            ) {
+                currentNode =
+                    currentNode[part].folders;
+            }
+
         }
 
-        grouped[folder].push(file);
-    });
+    }
+
+
+    /* -----------------------------------------------------
+       Find files inside current folder
+       ----------------------------------------------------- */
+
+    const visibleFiles =
+        filteredFiles.filter((file) => {
+
+            const folder =
+                file.folder || "General";
+
+            return folder === currentPath;
+
+        });
+
+
+    /* -----------------------------------------------------
+       Breadcrumb
+       ----------------------------------------------------- */
+
+    let html = `
+
+        <div class="explorerHeader">
+
+            ${
+                window.explorerPath.length
+                    ? `
+                        <button
+                            class="ghost"
+                            type="button"
+                            onclick="goBackExplorer()"
+                        >
+                            ← Back
+                        </button>
+                    `
+                    : ""
+            }
+
+            <div class="breadcrumb">
+
+                <button
+                    type="button"
+                    onclick="goHomeExplorer()"
+                >
+                    🏠 CSE Study Hub
+                </button>
+
+                ${
+                    window.explorerPath
+                        .map(
+                            (part, index) => {
+
+                                const path =
+                                    window.explorerPath
+                                        .slice(
+                                            0,
+                                            index + 1
+                                        )
+                                        .join("/");
+
+                                return `
+                                    <span>
+                                        /
+                                    </span>
+
+                                    <button
+                                        type="button"
+                                        onclick="openExplorerFolder(
+                                            '${encodeURIComponent(path).replace(/'/g, "%27")}'
+                                        )"
+                                    >
+                                        ${esc(part)}
+                                    </button>
+                                `;
+
+                            }
+                        )
+                        .join("")
+
+                }
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    /* -----------------------------------------------------
+       Empty state
+       ----------------------------------------------------- */
+
+    if (
+        !Object.keys(currentNode).length &&
+        !visibleFiles.length
+    ) {
+
+        $("folders").innerHTML =
+            html +
+            `
+                <div class="empty">
+
+                    <h3>
+                        No resources found
+                    </h3>
+
+                    <p>
+                        Try another search or folder.
+                    </p>
+
+                </div>
+            `;
+
+        return;
+    }
 
 
     /* -----------------------------------------------------
        Render folders
        ----------------------------------------------------- */
 
-    if (!Object.keys(grouped).length) {
-        $("folders").innerHTML = `
-            <div class="empty">
-                <h3>No resources found</h3>
-                <p>
-                    Try another search or folder.
-                </p>
-            </div>
-        `;
+    Object.entries(currentNode)
+        .forEach(([folderName, node]) => {
 
-        return;
-    }
+            const fullPath =
+                [
+                    ...window.explorerPath,
+                    folderName
+                ].join("/");
 
+            html += `
 
-    $("folders").innerHTML =
-        Object.entries(grouped)
-            .map(([folder, list]) => {
+                <article
+                    class="folder explorerFolder"
+                    onclick="openExplorerFolder(
+                        '${encodeURIComponent(fullPath).replace(/'/g, "%27")}'
+                    )"
+                >
 
-                return `
-                    <article class="folder">
+                    <div class="folderTitle">
 
-                        <div class="folderTitle">
+                        <span class="folderIcon">
+                            📁
+                        </span>
 
-                            <span class="folderIcon">
-                                📁
+                        <div>
+
+                            <h3>
+                                ${esc(folderName)}
+                            </h3>
+
+                            <span class="count">
+                                Open folder
                             </span>
-
-                            <div>
-
-                                <h3>
-                                    ${esc(folder)}
-                                </h3>
-
-                                <span class="count">
-                                    ${list.length}
-                                    file${list.length !== 1 ? "s" : ""}
-                                </span>
-
-                            </div>
 
                         </div>
 
+                    </div>
 
-                        ${list
-                            .map(
-                                (file) => `
-                                    <div class="file">
+                </article>
 
-                                        <a
-                                            href="/api/download/${encodeURIComponent(file.id)}"
-                                            title="${esc(file.name)}"
-                                        >
-                                            📄 ${esc(file.name)}
-                                        </a>
+            `;
 
-                                        <span class="download">
-                                            ↓ ${fmt(file.size)}
-                                        </span>
+        });
 
-                                    </div>
-                                `
-                            )
-                            .join("")}
 
-                    </article>
-                `;
-            })
-            .join("");
+    /* -----------------------------------------------------
+       Render files
+       ----------------------------------------------------- */
+
+    visibleFiles.forEach((file) => {
+
+        html += `
+
+            <article class="folder">
+
+                <div class="folderTitle">
+
+                    <span class="folderIcon">
+                        📄
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            ${esc(file.name)}
+                        </h3>
+
+                        <span class="count">
+                            ${fmt(file.size)}
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="file">
+
+                    <a
+                        href="/api/download/${encodeURIComponent(file.id)}"
+                        title="${esc(file.name)}"
+                    >
+                        Download
+                    </a>
+
+                    <span class="download">
+                        ↓ ${fmt(file.size)}
+                    </span>
+
+                </div>
+
+            </article>
+
+        `;
+
+    });
+
+
+    $("folders").innerHTML =
+        html;
+
+
+    /* -----------------------------------------------------
+       Explorer navigation functions
+       ----------------------------------------------------- */
+
+    window.openExplorerFolder =
+        function (encodedPath) {
+
+            const path =
+                decodeURIComponent(encodedPath);
+
+            window.explorerPath =
+                path
+                    .split("/")
+                    .filter(Boolean);
+
+            render();
+
+        };
+
+
+    window.goHomeExplorer =
+        function () {
+
+            window.explorerPath = [];
+
+            render();
+
+        };
+
+
+    window.goBackExplorer =
+        function () {
+
+            window.explorerPath =
+                window.explorerPath.slice(
+                    0,
+                    -1
+                );
+
+            render();
+
+        };
+
 }
-
 
 /* =========================================================
    6. SEARCH & FOLDER FILTER
