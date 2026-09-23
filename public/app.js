@@ -748,27 +748,31 @@ form.append(
    11. ADMIN FILE MANAGEMENT
    ========================================================= */
 
+/* =========================================================
+   ADMIN FILE MANAGEMENT
+   ========================================================= */
+
 async function adminList() {
 
     const container = $("adminFiles");
 
-    if (!files.length) {
-        container.innerHTML =
-            "<p>No files yet.</p>";
-
+    if (!container) {
         return;
     }
 
+    if (!files.length) {
+        container.innerHTML = "<p>No files yet.</p>";
+        return;
+    }
 
     container.innerHTML = `
+        <div class="csh-admin-toolbar">
 
-        <div class="adminToolbar">
-
-            <label class="selectAllBox">
+            <label class="csh-select-all">
 
                 <input
                     type="checkbox"
-                    id="selectAllFiles"
+                    id="cshSelectAll"
                     onchange="toggleSelectAll()"
                 >
 
@@ -776,15 +780,17 @@ async function adminList() {
 
             </label>
 
-
-            <span id="selectedCount">
+            <div
+                id="cshSelectedCount"
+                class="csh-selected-count"
+            >
                 0 files selected
-            </span>
-
+            </div>
 
             <button
+                type="button"
+                id="cshDeleteSelected"
                 class="danger"
-                id="deleteSelectedBtn"
                 onclick="deleteSelected()"
                 disabled
             >
@@ -793,141 +799,122 @@ async function adminList() {
 
         </div>
 
+        <div class="csh-admin-file-list">
 
-        <div class="adminFileList">
+            ${files.map((file) => `
 
-            ${files
-                .map(
-                    (file) => `
-                        <div
-                            class="adminItem"
-                            data-file-id="${esc(file.id)}"
+                <div
+                    class="csh-admin-file"
+                    data-file-id="${esc(file.id)}"
+                >
+
+                    <label class="csh-file-selector">
+
+                        <input
+                            type="checkbox"
+                            class="csh-file-checkbox"
+                            value="${esc(file.id)}"
+                            onchange="updateSelectedCount()"
                         >
 
-                            <label
-                                class="fileSelectBox"
-                            >
-
-                                <input
-                                    type="checkbox"
-                                    class="fileCheckbox"
-                                    value="${esc(file.id)}"
-                                    onchange="updateSelectedCount()"
-                                >
-
-                                <span>
-
-                                    ${esc(file.folder)}
-                                    /
-                                    ${esc(file.name)}
-
-                                </span>
-
-                            </label>
-
-
-                            <button
-                                class="danger"
-                                onclick="del('${esc(file.id)}')"
-                            >
-                                Delete
-                            </button>
-
+                        <div class="csh-file-name">
+                            ${esc(file.folder)} / ${esc(file.name)}
                         </div>
-                    `
-                )
-                .join("")}
+
+                    </label>
+
+                    <button
+                        type="button"
+                        class="danger csh-single-delete"
+                        onclick="del('${esc(file.id)}')"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            `).join("")}
 
         </div>
     `;
-}
-
-
-/* =========================================================
-   12. SELECT ALL
-   ========================================================= */
-
-function toggleSelectAll() {
-
-    const selectAll =
-        $("selectAllFiles");
-
-    const checkboxes =
-        document.querySelectorAll(
-            ".fileCheckbox"
-        );
-
-
-    checkboxes.forEach((checkbox) => {
-
-        checkbox.checked =
-            selectAll.checked;
-
-    });
-
 
     updateSelectedCount();
 }
 
 
 /* =========================================================
-   13. UPDATE SELECTED COUNT
+   SELECT ALL
+   ========================================================= */
+
+function toggleSelectAll() {
+
+    const selectAll =
+        document.getElementById("cshSelectAll");
+
+    const checkboxes =
+        document.querySelectorAll(
+            ".csh-file-checkbox"
+        );
+
+    checkboxes.forEach((checkbox) => {
+        checkbox.checked = selectAll.checked;
+    });
+
+    updateSelectedCount();
+}
+
+
+/* =========================================================
+   SELECTED COUNT
    ========================================================= */
 
 function updateSelectedCount() {
 
-    const checkboxes =
+    const selected =
         document.querySelectorAll(
-            ".fileCheckbox:checked"
-        );
+            ".csh-file-checkbox:checked"
+        ).length;
 
+    const total =
+        document.querySelectorAll(
+            ".csh-file-checkbox"
+        ).length;
 
     const count =
-        checkboxes.length;
-
-
-    const countElement =
-        $("selectedCount");
-
-    if (countElement) {
-
-        countElement.textContent =
-            `${count} file${count === 1 ? "" : "s"} selected`;
-
-    }
-
-
-    const deleteButton =
-        $("deleteSelectedBtn");
-
-    if (deleteButton) {
-
-        deleteButton.disabled =
-            count === 0;
-
-    }
-
-
-    const allCheckboxes =
-        document.querySelectorAll(
-            ".fileCheckbox"
+        document.getElementById(
+            "cshSelectedCount"
         );
 
+    if (count) {
+        count.textContent =
+            `${selected} file${selected === 1 ? "" : "s"} selected`;
+    }
+
+    const deleteButton =
+        document.getElementById(
+            "cshDeleteSelected"
+        );
+
+    if (deleteButton) {
+        deleteButton.disabled =
+            selected === 0;
+    }
+
     const selectAll =
-        $("selectAllFiles");
+        document.getElementById(
+            "cshSelectAll"
+        );
 
     if (selectAll) {
-
         selectAll.checked =
-            allCheckboxes.length > 0 &&
-            count === allCheckboxes.length;
-
+            total > 0 &&
+            selected === total;
     }
 }
 
 
 /* =========================================================
-   14. DELETE SELECTED FILES
+   DELETE SELECTED
    ========================================================= */
 
 async function deleteSelected() {
@@ -935,48 +922,35 @@ async function deleteSelected() {
     const selected =
         [
             ...document.querySelectorAll(
-                ".fileCheckbox:checked"
+                ".csh-file-checkbox:checked"
             )
-        ]
-        .map(
+        ].map(
             checkbox => checkbox.value
         );
 
-
     if (!selected.length) {
-
-        toast(
-            "No files selected."
-        );
-
+        toast("No files selected.");
         return;
     }
-
 
     const confirmed =
         confirm(
             `Are you sure you want to delete these ${selected.length} files?`
         );
 
-
     if (!confirmed) {
         return;
     }
 
+    const button =
+        document.getElementById(
+            "cshDeleteSelected"
+        );
 
-    const deleteButton =
-        $("deleteSelectedBtn");
-
-
-    if (deleteButton) {
-
-        deleteButton.disabled =
-            true;
-
-        deleteButton.textContent =
-            "Deleting...";
+    if (button) {
+        button.disabled = true;
+        button.textContent = "Deleting...";
     }
-
 
     try {
 
@@ -1000,29 +974,23 @@ async function deleteSelected() {
                 }
             );
 
-
         const data =
             await response.json();
 
-
         if (!response.ok) {
-
             throw new Error(
                 data.error ||
                 "Bulk delete failed."
             );
         }
 
-
-        toast(
-            `${data.deleted} file${data.deleted === 1 ? "" : "s"} deleted successfully.`
-        );
-
-
         await load();
 
         adminList();
 
+        toast(
+            `${data.deleted} file${data.deleted === 1 ? "" : "s"} deleted successfully.`
+        );
 
     } catch (error) {
 
@@ -1031,12 +999,10 @@ async function deleteSelected() {
             error
         );
 
-
         toast(
             error.message ||
-            "Delete failed."
+            "Bulk delete failed."
         );
-
 
         adminList();
     }
@@ -1044,19 +1010,14 @@ async function deleteSelected() {
 
 
 /* =========================================================
-   15. DELETE SINGLE FILE
+   DELETE SINGLE FILE
    ========================================================= */
 
 async function del(id) {
 
-    if (
-        !confirm(
-            "Delete this file?"
-        )
-    ) {
+    if (!confirm("Delete this file?")) {
         return;
     }
-
 
     try {
 
@@ -1074,19 +1035,15 @@ async function del(id) {
                 }
             );
 
-
         const data =
             await response.json();
 
-
         if (!response.ok) {
-
             throw new Error(
                 data.error ||
                 "Delete failed."
             );
         }
-
 
         await load();
 
@@ -1096,7 +1053,6 @@ async function del(id) {
             "File deleted successfully."
         );
 
-
     } catch (error) {
 
         console.error(
@@ -1104,14 +1060,12 @@ async function del(id) {
             error
         );
 
-
         toast(
             error.message ||
             "Delete failed."
         );
     }
 }
-
 
 /* =========================================================
    16. TOAST NOTIFICATION
