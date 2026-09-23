@@ -611,3 +611,101 @@ header {
 .explorerFolder .count {
     color: var(--secondary-text);
 }
+
+
+/* =========================================================
+   ADMIN FILE MANAGEMENT
+   ========================================================= */
+
+.adminToolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--card-bg);
+}
+
+.selectAllBox,
+.fileSelectBox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.selectAllBox {
+    font-weight: 600;
+}
+
+.adminToolbar #selectedCount {
+    color: var(--secondary-text);
+    font-size: 14px;
+}
+
+.adminToolbar button {
+    margin-left: auto;
+}
+
+.adminToolbar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.adminFileList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.adminItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--card-bg);
+}
+
+.fileSelectBox {
+    min-width: 0;
+    flex: 1;
+}
+
+.fileSelectBox span {
+    overflow-wrap: anywhere;
+}
+
+.fileCheckbox,
+#selectAllFiles {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.adminItem .danger {
+    flex-shrink: 0;
+}
+
+@media (max-width: 650px) {
+
+    .adminToolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .adminToolbar button {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .adminItem {
+        align-items: flex-start;
+    }
+}
