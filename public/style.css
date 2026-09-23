@@ -3,6 +3,25 @@
    Main Stylesheet
    ========================================================= */
 
+/* =========================================================
+   DARK / LIGHT MODE
+   ========================================================= */
+
+:root {
+    --bg-color: #f6f8fc;
+    --card-color: #ffffff;
+    --text-color: #172033;
+    --secondary-text: #667085;
+    --border-color: #eaecf0;
+}
+
+[data-theme="dark"] {
+    --bg-color: #0f172a;
+    --card-color: #1e293b;
+    --text-color: #f1f5f9;
+    --secondary-text: #94a3b8;
+    --border-color: #334155;
+}
 
 /* =========================================================
    1. GLOBAL / RESET
