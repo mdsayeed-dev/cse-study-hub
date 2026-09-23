@@ -796,3 +796,146 @@ header {
     }
 
 }
+
+/* =========================================================
+   CSE STUDY HUB - ADMIN FILE MANAGER
+   ========================================================= */
+
+#adminFiles {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.csh-admin-toolbar {
+    width: 100%;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+
+    padding: 12px 14px;
+    margin-bottom: 14px;
+
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+
+    background: var(--card-bg);
+}
+
+.csh-select-all {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.csh-select-all input {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.csh-selected-count {
+    font-size: 14px;
+    color: var(--secondary-text);
+}
+
+#cshDeleteSelected {
+    margin-left: auto;
+}
+
+#cshDeleteSelected:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.csh-admin-file-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.csh-admin-file {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 12px 14px;
+
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+
+    background: var(--card-bg);
+}
+
+.csh-file-selector {
+    min-width: 0;
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+}
+
+.csh-file-checkbox {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.csh-file-name {
+    min-width: 0;
+    width: 100%;
+
+    display: block;
+
+    font-size: 14px;
+    line-height: 1.5;
+
+    text-align: left;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.csh-single-delete {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+@media (max-width: 650px) {
+
+    .csh-admin-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #cshDeleteSelected {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .csh-admin-file {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .csh-single-delete {
+        align-self: flex-start;
+    }
+}
