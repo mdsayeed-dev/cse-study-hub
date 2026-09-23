@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CSE Study Hub</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><div class="brand"><div class="logo">CSE</div><div><h1>CSE Study Hub</h1><p>Aliah University • B.Tech CSE</p></div></div><button id="adminBtn" class="ghost">Admin</button></header>
+<main>
+<section class="hero"><div><span class="pill">STUDY • SHARE • LEARN</span><h2>Everything your class needs,<br><span>in one place.</span></h2><p>Notes, notices, PYQs and resources — organized into simple folders and accessible from one link.</p></div><div class="heroIcon">📚</div></section>
+<div class="stats"><div><b id="fileCount">0</b><small>Files</small></div><div><b id="folderCount">0</b><small>Folders</small></div><div><b id="totalSize">0 MB</b><small>Total storage</small></div></div>
+<section class="toolbar"><div class="search"><span>⌕</span><input id="search" placeholder="Search files, folders..."></div><select id="folderFilter"><option value="">All folders</option></select></section>
+<section id="folders" class="grid"></section>
+</main>
+<div id="toast"></div>
+<div id="modal" class="modal hidden"><div class="card"><button class="x" onclick="closeModal()">×</button>
+<div id="loginView"><h2>Admin access</h2><p>Upload and manage class resources.</p><input id="password" type="password" placeholder="Admin password"><button class="primary" onclick="login()">Login</button><div id="loginError" class="error"></div></div>
+<div id="panelView" class="hidden"><h2>Upload resources</h2><p class="muted">Select an entire folder or multiple files. Folder structure is preserved.</p><label>Folder label (optional)</label><input id="folderName" placeholder="e.g. Semester 1 / Mathematics"><label>Choose folder / files</label><input id="files" type="file" multiple webkitdirectory directory><button class="primary" onclick="uploadFiles()">Upload files</button><div id="progress" class="progress hidden"><div></div></div><p id="uploadStatus"></p><hr><h3>Manage files</h3><div id="adminFiles"></div></div>
+</div></div>
+<script src="app.js"></script></body></html>
