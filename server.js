@@ -200,22 +200,200 @@ const filePath = safePath(id);
   res.redirect(publicUrl(filePath));
 });
 
+// =========================================================
+// ADMIN FILE MANAGEMENT
+// =========================================================
+
+// Delete a single file
 app.delete("/api/files/*id", auth, async (req, res) => {
   if (!requireStorage(res)) return;
-  const id = Array.isArray(req.params.id)
-  ? req.params.id.join("/")
-  : req.params.id || "";
 
-const filePath = safePath(id);
-  if (!filePath) return res.sendStatus(404);
+  const id = Array.isArray(req.params.id)
+    ? req.params.id.join("/")
+    : req.params.id || "";
+
+  const filePath = safePath(id);
+
+  if (!filePath) {
+    return res.status(400).json({
+      error: "Invalid file path."
+    });
+  }
 
   try {
-    const { error } = await supabase.storage.from(BUCKET).remove([filePath]);
+    const { error } = await supabase
+      .storage
+      .from(BUCKET)
+      .remove([filePath]);
+
     if (error) throw error;
-    res.json({ ok: true });
+
+    res.json({
+      ok: true,
+      deleted: 1
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message || "Delete failed" });
+    console.error("DELETE FILE ERROR:", error);
+
+    res.status(500).json({
+      error: error.message || "Delete failed."
+    });
+  }
+});
+
+
+// Bulk delete selected files
+app.post("/api/files/bulk-delete", auth, async (req, res) => {
+  if (!requireStorage(res)) return;
+
+  const ids = Array.isArray(req.body?.ids)
+    ? req.body.ids
+    : [];
+
+  const filePaths = ids
+    .map(id => safePath(String(id)))
+    .filter(Boolean);
+
+  if (!filePaths.length) {
+    return res.status(400).json({
+      error: "No files selected."
+    });
+  }
+
+  try {
+
+    let deleted = 0;
+
+    // Supabase Storage supports deleting multiple objects.
+    // Process in batches so large selections remain practical.
+    const BATCH_SIZE = 100;
+
+    for (let i = 0; i < filePaths.length; i += BATCH_SIZE) {
+
+      const batch = filePaths.slice(
+        i,
+        i + BATCH_SIZE
+      );
+
+      const { error } = await supabase
+        .storage
+        .from(BUCKET)
+        .remove(batch);
+
+      if (error) throw error;
+
+      deleted += batch.length;
+    }
+
+    res.json({
+      ok: true,
+      deleted
+    });
+
+  } catch (error) {
+
+    console.error("BULK DELETE ERROR:", error);
+
+    res.status(500).json({
+      error: error.message || "Bulk delete failed."
+    });
+  }
+});
+
+
+// Delete an entire folder/category/semester
+app.delete("/api/folders/*id", auth, async (req, res) => {
+  if (!requireStorage(res)) return;
+
+  const id = Array.isArray(req.params.id)
+    ? req.params.id.join("/")
+    : req.params.id || "";
+
+  const folderPath = safePath(id);
+
+  if (!folderPath) {
+    return res.status(400).json({
+      error: "Invalid folder path."
+    });
+  }
+
+  try {
+
+    const filesToDelete = [];
+
+    // Recursively collect all files inside the folder.
+    async function collectFiles(prefix) {
+
+      const { data, error } = await supabase
+        .storage
+        .from(BUCKET)
+        .list(prefix, {
+          limit: 1000,
+          offset: 0
+        });
+
+      if (error) throw error;
+
+      for (const item of data || []) {
+
+        const itemPath = `${prefix}/${item.name}`;
+
+        // Supabase folders are represented as prefixes.
+        if (item.id === null) {
+          await collectFiles(itemPath);
+        } else {
+          filesToDelete.push(itemPath);
+        }
+      }
+    }
+
+    await collectFiles(folderPath);
+
+    if (!filesToDelete.length) {
+      return res.json({
+        ok: true,
+        deleted: 0
+      });
+    }
+
+    let deleted = 0;
+
+    const BATCH_SIZE = 100;
+
+    for (
+      let i = 0;
+      i < filesToDelete.length;
+      i += BATCH_SIZE
+    ) {
+
+      const batch = filesToDelete.slice(
+        i,
+        i + BATCH_SIZE
+      );
+
+      const { error } = await supabase
+        .storage
+        .from(BUCKET)
+        .remove(batch);
+
+      if (error) throw error;
+
+      deleted += batch.length;
+    }
+
+    res.json({
+      ok: true,
+      deleted
+    });
+
+  } catch (error) {
+
+    console.error("DELETE FOLDER ERROR:", error);
+
+    res.status(500).json({
+      error: error.message || "Folder deletion failed."
+    });
   }
 });
 
