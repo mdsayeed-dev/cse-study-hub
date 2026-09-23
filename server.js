@@ -155,10 +155,17 @@ app.post("/api/upload", auth, upload.array("files", 500), async (req, res) => {
     for (const file of req.files) {
       const filePath = storagePath(folder, file.originalname);
 
-      const { error } = await supabase.storage.from(BUCKET).upload(filePath, file.buffer, {
-        contentType: file.mimetype || "application/octet-stream",
-        upsert: true
-      });
+console.log("UPLOAD DEBUG:", {
+  bucket: BUCKET,
+  folder,
+  originalName: file.originalname,
+  filePath
+});
+
+const { error } = await supabase.storage.from(BUCKET).upload(filePath, file.buffer, {
+  contentType: file.mimetype || "application/octet-stream",
+  upsert: true
+});
 
       if (error) throw error;
 
