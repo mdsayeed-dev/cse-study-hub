@@ -364,14 +364,25 @@ async function panel() {
    ========================================================= */
 
 async function uploadFiles() {
-    const selectedFiles = [
+
+    const individualFiles = [
         ...$("files").files
+    ];
+
+    const folderFiles = [
+        ...$("folderFiles").files
+    ];
+
+    const selectedFiles = [
+        ...individualFiles,
+        ...folderFiles
     ];
 
 
     if (!selectedFiles.length) {
+
         $("uploadStatus").textContent =
-            "Select a folder or files first.";
+            "Select files or a folder first.";
 
         return;
     }
@@ -391,11 +402,13 @@ async function uploadFiles() {
     /* Selected files */
 
     selectedFiles.forEach((file) => {
+
         form.append(
             "files",
             file,
             file.webkitRelativePath || file.name
         );
+
     });
 
 
@@ -432,6 +445,7 @@ async function uploadFiles() {
     /* Upload failed */
 
     if (!response.ok) {
+
         $("uploadStatus").textContent =
             data.error || "Upload failed.";
 
@@ -448,7 +462,11 @@ async function uploadFiles() {
         `Uploaded ${data.added} file(s) successfully.`;
 
 
+    /* Clear both inputs */
+
     $("files").value = "";
+
+    $("folderFiles").value = "";
 
 
     await load();
@@ -457,7 +475,6 @@ async function uploadFiles() {
 
     toast("Upload complete");
 }
-
 
 /* =========================================================
    11. ADMIN FILE LIST
