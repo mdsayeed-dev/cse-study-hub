@@ -39,6 +39,7 @@ function safePath(value = "") {
     .map(part => part.trim())
     .filter(Boolean)
     .filter(part => part !== "." && part !== "..")
+    .map(part => part.replace(/[{}[\]<>:"|?*\x00-\x1F]/g, "_"))
     .join("/");
 }
 
