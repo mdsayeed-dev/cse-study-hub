@@ -629,79 +629,150 @@ header {
     background: var(--card-bg);
 }
 
-.selectAllBox,
-.fileSelectBox {
+/* =========================================================
+   ADMIN FILE MANAGEMENT - CLEAN LAYOUT
+   ========================================================= */
+
+#adminFiles {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.adminToolbar {
+    width: 100%;
+    box-sizing: border-box;
+
     display: flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer;
+    gap: 14px;
+    flex-wrap: wrap;
+
+    padding: 12px 14px;
+    margin-bottom: 14px;
+
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--card-bg);
 }
 
 .selectAllBox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
     font-weight: 600;
 }
 
-.adminToolbar #selectedCount {
+#selectedCount {
     color: var(--secondary-text);
     font-size: 14px;
 }
 
-.adminToolbar button {
+#deleteSelectedBtn {
     margin-left: auto;
 }
 
-.adminToolbar button:disabled {
+#deleteSelectedBtn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
+
+/* FILE LIST */
+
 .adminFileList {
+    width: 100%;
+    max-width: 100%;
+
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
-.adminItem {
-    display: flex;
+
+/* EACH FILE */
+
+.adminFileList .adminItem {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
+
     gap: 14px;
+
     padding: 12px 14px;
+
     border: 1px solid var(--border-color);
     border-radius: 10px;
+
     background: var(--card-bg);
 }
 
+
+/* CHECKBOX + FILE NAME */
+
 .fileSelectBox {
+    width: 100%;
+    min-width: 0;
+
     display: flex;
     align-items: center;
+
     gap: 10px;
+
     cursor: pointer;
-    min-width: 0;
-    flex: 1;
-    width: 100%;
 }
 
+
+/* FILE NAME */
+
 .fileSelectBox span {
-    min-width: 0;
-    flex: 1;
     display: block;
+
+    width: 100%;
+    min-width: 0;
+
+    font-size: 14px;
+    line-height: 1.5;
+
+    text-align: left;
+
     white-space: normal;
     overflow-wrap: break-word;
     word-break: normal;
 }
 
+
+/* CHECKBOX */
+
 .fileCheckbox,
 #selectAllFiles {
     width: 17px;
     height: 17px;
+
     flex-shrink: 0;
+
     cursor: pointer;
 }
 
-.adminItem .danger {
+
+/* DELETE BUTTON */
+
+.adminFileList .danger {
+    width: auto;
+    min-width: 70px;
+
     flex-shrink: 0;
 }
+
+
+/* MOBILE */
 
 @media (max-width: 650px) {
 
@@ -710,128 +781,18 @@ header {
         flex-direction: column;
     }
 
-    .adminToolbar button {
+    #deleteSelectedBtn {
         margin-left: 0;
         width: 100%;
     }
 
-    .adminItem {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 12px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    background: var(--card-bg);
-}
+    .adminFileList .adminItem {
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
-}
 
+    .adminFileList .danger {
+        justify-self: start;
+    }
 
-/* =========================================================
-   ADMIN FILE LAYOUT - FINAL FIX
-   ========================================================= */
-
-#adminFiles {
-    width: 100%;
-    min-width: 0;
-}
-
-.adminFileList {
-    width: 100%;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.adminItem {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100%;
-    box-sizing: border-box;
-
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-
-    text-align: left !important;
-
-    padding: 12px 14px;
-    gap: 14px;
-}
-
-.fileSelectBox {
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-
-    flex: 1 1 auto !important;
-
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-
-    text-align: left !important;
-}
-
-.fileSelectBox span {
-    display: block !important;
-
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-
-    flex: 1 1 auto !important;
-
-    text-align: left !important;
-
-    white-space: normal !important;
-    word-break: normal !important;
-    overflow-wrap: anywhere !important;
-}
-
-.fileCheckbox {
-    flex: 0 0 auto !important;
-}
-
-.adminItem .danger {
-    flex: 0 0 auto !important;
-    width: auto !important;
-}
-
-/* =========================================================
-   ADMIN FILES - VERTICAL ITEM LAYOUT
-   ========================================================= */
-
-.adminItem {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: flex-start !important;
-    gap: 10px !important;
-}
-
-.fileSelectBox {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-}
-
-.fileSelectBox span {
-    width: 100% !important;
-    display: block !important;
-    white-space: normal !important;
-    word-break: normal !important;
-    overflow-wrap: break-word !important;
-}
-
-.adminItem .danger {
-    align-self: flex-start !important;
 }
