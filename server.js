@@ -174,9 +174,13 @@ app.post("/api/upload", auth, upload.array("files", 500), async (req, res) => {
   }
 });
 
-app.get("/api/download/:id(*)", async (req, res) => {
+app.get("/api/download/*id", async (req, res) => {
   if (!requireStorage(res)) return;
-  const filePath = safePath(req.params.id || "");
+  const id = Array.isArray(req.params.id)
+  ? req.params.id.join("/")
+  : req.params.id || "";
+
+const filePath = safePath(id);
   if (!filePath) return res.sendStatus(404);
 
   // The bucket is public, so let Supabase serve the file directly.
@@ -184,9 +188,13 @@ app.get("/api/download/:id(*)", async (req, res) => {
   res.redirect(publicUrl(filePath));
 });
 
-app.delete("/api/files/:id(*)", auth, async (req, res) => {
+app.delete("/api/files/*id", auth, async (req, res) => {
   if (!requireStorage(res)) return;
-  const filePath = safePath(req.params.id || "");
+  const id = Array.isArray(req.params.id)
+  ? req.params.id.join("/")
+  : req.params.id || "";
+
+const filePath = safePath(id);
   if (!filePath) return res.sendStatus(404);
 
   try {
