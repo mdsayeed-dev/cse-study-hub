@@ -393,10 +393,24 @@ async function uploadFiles() {
 
     /* Folder label */
 
-    form.append(
-        "folder",
-        $("folderName").value.trim()
-    );
+    const department = $("departmentName").value.trim();
+const category = $("categoryName").value.trim();
+const semester = $("semesterName").value.trim();
+const subject = $("subjectName").value.trim();
+
+const folderPath = [
+    department,
+    category,
+    semester,
+    subject
+]
+    .filter(Boolean)
+    .join("/");
+
+form.append(
+    "folder",
+    folderPath
+);
 
 
     /* Selected files */
