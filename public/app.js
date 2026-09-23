@@ -744,84 +744,399 @@ form.append(
    11. ADMIN FILE LIST
    ========================================================= */
 
-async function adminList() {
-    $("adminFiles").innerHTML =
-        files
-            .map(
-                (file) => `
-                    <div class="adminItem">
-
-                        <span>
-                            ${esc(file.folder)}
-                            /
-                            ${esc(file.name)}
-                        </span>
-
-                        <button
-                            class="danger"
-                            onclick="del('${file.id}')"
-                        >
-                            Delete
-                        </button>
-
-                    </div>
-                `
-            )
-            .join("") ||
-        "<p>No files yet.</p>";
-}
-
-
 /* =========================================================
-   12. DELETE FILE
+   11. ADMIN FILE MANAGEMENT
    ========================================================= */
 
-async function del(id) {
-    if (!confirm("Delete this file?")) {
+async function adminList() {
+
+    const container = $("adminFiles");
+
+    if (!files.length) {
+        container.innerHTML =
+            "<p>No files yet.</p>";
+
         return;
     }
 
 
-    const response = await fetch(
-        "/api/files/" + encodeURIComponent(id),
-        {
-            method: "DELETE",
+    container.innerHTML = `
 
-            headers: {
-                "x-admin-token": token
-            }
-        }
-    );
+        <div class="adminToolbar">
+
+            <label class="selectAllBox">
+
+                <input
+                    type="checkbox"
+                    id="selectAllFiles"
+                    onchange="toggleSelectAll()"
+                >
+
+                <span>Select All</span>
+
+            </label>
 
 
-    if (response.ok) {
-        await load();
+            <span id="selectedCount">
+                0 files selected
+            </span>
 
-        adminList();
 
-        toast("File deleted");
+            <button
+                class="danger"
+                id="deleteSelectedBtn"
+                onclick="deleteSelected()"
+                disabled
+            >
+                Delete Selected
+            </button>
+
+        </div>
+
+
+        <div class="adminFileList">
+
+            ${files
+                .map(
+                    (file) => `
+                        <div
+                            class="adminItem"
+                            data-file-id="${esc(file.id)}"
+                        >
+
+                            <label
+                                class="fileSelectBox"
+                            >
+
+                                <input
+                                    type="checkbox"
+                                    class="fileCheckbox"
+                                    value="${esc(file.id)}"
+                                    onchange="updateSelectedCount()"
+                                >
+
+                                <span>
+
+                                    ${esc(file.folder)}
+                                    /
+                                    ${esc(file.name)}
+
+                                </span>
+
+                            </label>
+
+
+                            <button
+                                class="danger"
+                                onclick="del('${esc(file.id)}')"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+                    `
+                )
+                .join("")}
+
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   12. SELECT ALL
+   ========================================================= */
+
+function toggleSelectAll() {
+
+    const selectAll =
+        $("selectAllFiles");
+
+    const checkboxes =
+        document.querySelectorAll(
+            ".fileCheckbox"
+        );
+
+
+    checkboxes.forEach((checkbox) => {
+
+        checkbox.checked =
+            selectAll.checked;
+
+    });
+
+
+    updateSelectedCount();
+}
+
+
+/* =========================================================
+   13. UPDATE SELECTED COUNT
+   ========================================================= */
+
+function updateSelectedCount() {
+
+    const checkboxes =
+        document.querySelectorAll(
+            ".fileCheckbox:checked"
+        );
+
+
+    const count =
+        checkboxes.length;
+
+
+    const countElement =
+        $("selectedCount");
+
+    if (countElement) {
+
+        countElement.textContent =
+            `${count} file${count === 1 ? "" : "s"} selected`;
+
+    }
+
+
+    const deleteButton =
+        $("deleteSelectedBtn");
+
+    if (deleteButton) {
+
+        deleteButton.disabled =
+            count === 0;
+
+    }
+
+
+    const allCheckboxes =
+        document.querySelectorAll(
+            ".fileCheckbox"
+        );
+
+    const selectAll =
+        $("selectAllFiles");
+
+    if (selectAll) {
+
+        selectAll.checked =
+            allCheckboxes.length > 0 &&
+            count === allCheckboxes.length;
+
     }
 }
 
 
 /* =========================================================
-   13. TOAST NOTIFICATION
+   14. DELETE SELECTED FILES
+   ========================================================= */
+
+async function deleteSelected() {
+
+    const selected =
+        [
+            ...document.querySelectorAll(
+                ".fileCheckbox:checked"
+            )
+        ]
+        .map(
+            checkbox => checkbox.value
+        );
+
+
+    if (!selected.length) {
+
+        toast(
+            "No files selected."
+        );
+
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            `Are you sure you want to delete these ${selected.length} files?`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    const deleteButton =
+        $("deleteSelectedBtn");
+
+
+    if (deleteButton) {
+
+        deleteButton.disabled =
+            true;
+
+        deleteButton.textContent =
+            "Deleting...";
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/files/bulk-delete",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "x-admin-token":
+                            token
+                    },
+
+                    body: JSON.stringify({
+                        ids: selected
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                "Bulk delete failed."
+            );
+        }
+
+
+        toast(
+            `${data.deleted} file${data.deleted === 1 ? "" : "s"} deleted successfully.`
+        );
+
+
+        await load();
+
+        adminList();
+
+
+    } catch (error) {
+
+        console.error(
+            "BULK DELETE ERROR:",
+            error
+        );
+
+
+        toast(
+            error.message ||
+            "Delete failed."
+        );
+
+
+        adminList();
+    }
+}
+
+
+/* =========================================================
+   15. DELETE SINGLE FILE
+   ========================================================= */
+
+async function del(id) {
+
+    if (
+        !confirm(
+            "Delete this file?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/files/" +
+                encodeURIComponent(id),
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "x-admin-token":
+                            token
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                "Delete failed."
+            );
+        }
+
+
+        await load();
+
+        adminList();
+
+        toast(
+            "File deleted successfully."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "DELETE ERROR:",
+            error
+        );
+
+
+        toast(
+            error.message ||
+            "Delete failed."
+        );
+    }
+}
+
+
+/* =========================================================
+   16. TOAST NOTIFICATION
    ========================================================= */
 
 function toast(message) {
-    $("toast").textContent = message;
 
-    $("toast").style.display = "block";
+    $("toast").textContent =
+        message;
+
+    $("toast").style.display =
+        "block";
 
 
     setTimeout(() => {
-        $("toast").style.display = "none";
+
+        $("toast").style.display =
+            "none";
+
     }, 2200);
 }
 
 
 /* =========================================================
-   14. INITIALIZE WEBSITE
+   17. INITIALIZE WEBSITE
    ========================================================= */
 
 initTheme();
