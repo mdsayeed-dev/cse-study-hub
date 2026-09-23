@@ -804,3 +804,34 @@ header {
     flex: 0 0 auto !important;
     width: auto !important;
 }
+
+/* =========================================================
+   ADMIN FILES - VERTICAL ITEM LAYOUT
+   ========================================================= */
+
+.adminItem {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+}
+
+.fileSelectBox {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+}
+
+.fileSelectBox span {
+    width: 100% !important;
+    display: block !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+}
+
+.adminItem .danger {
+    align-self: flex-start !important;
+}
