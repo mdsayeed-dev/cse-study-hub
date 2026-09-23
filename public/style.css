@@ -729,3 +729,78 @@ header {
 }
     }
 }
+
+
+/* =========================================================
+   ADMIN FILE LAYOUT - FINAL FIX
+   ========================================================= */
+
+#adminFiles {
+    width: 100%;
+    min-width: 0;
+}
+
+.adminFileList {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.adminItem {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    box-sizing: border-box;
+
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    text-align: left !important;
+
+    padding: 12px 14px;
+    gap: 14px;
+}
+
+.fileSelectBox {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    flex: 1 1 auto !important;
+
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+
+    text-align: left !important;
+}
+
+.fileSelectBox span {
+    display: block !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    flex: 1 1 auto !important;
+
+    text-align: left !important;
+
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+}
+
+.fileCheckbox {
+    flex: 0 0 auto !important;
+}
+
+.adminItem .danger {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
