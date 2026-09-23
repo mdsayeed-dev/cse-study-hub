@@ -1,0 +1,17 @@
+const express=require("express"), multer=require("multer"), fs=require("fs"), path=require("path"), crypto=require("crypto");
+const app=express(), PORT=process.env.PORT||3000, ADMIN_PASSWORD=process.env.ADMIN_PASSWORD||"change-me";
+const DATA=path.join(__dirname,"data"), UP=path.join(DATA,"uploads"), DB=path.join(DATA,"db.json");
+fs.mkdirSync(UP,{recursive:true}); if(!fs.existsSync(DB))fs.writeFileSync(DB,JSON.stringify({files:[]},null,2));
+const read=()=>JSON.parse(fs.readFileSync(DB,"utf8")), save=x=>fs.writeFileSync(DB,JSON.stringify(x,null,2));
+const safe=n=>path.basename(n).replace(/[^\w.\- ()[\]]/g,"_");
+const storage=multer.diskStorage({destination:(r,f,c)=>c(null,UP),filename:(r,f,c)=>c(null,crypto.randomUUID()+"-"+safe(f.originalname))});
+const upload=multer({storage,limits:{files:500,fileSize:1024*1024*1024}});
+app.use(express.json()); app.use(express.static(path.join(__dirname,"public")));
+const auth=(r,s,n)=>r.headers["x-admin-token"]===ADMIN_PASSWORD?n():s.status(401).json({error:"Unauthorized"});
+app.get("/api/files",(r,s)=>s.json(read().files.map(({id,name,folder,size,uploadedAt})=>({id,name,folder,size,uploadedAt}))));
+app.post("/api/login",(r,s)=>r.body.password===ADMIN_PASSWORD?s.json({ok:true,token:ADMIN_PASSWORD}):s.status(401).json({error:"Wrong password"}));
+app.post("/api/upload",auth,upload.array("files",500),(r,s)=>{let d=read(),folder=(r.body.folder||"").trim(),added=[];(r.files||[]).forEach(f=>{let rel=f.originalname.replaceAll("\\\\","/"),item={id:crypto.randomUUID(),name:path.basename(rel),folder:folder||path.dirname(rel)==="."?"General":path.dirname(rel),size:f.size,uploadedAt:new Date().toISOString(),storedName:f.filename};d.files.push(item);added.push(item)});save(d);s.json({ok:true,added:added.length})});
+app.get("/api/download/:id",(r,s)=>{let f=read().files.find(x=>x.id===r.params.id);if(!f)return s.sendStatus(404);s.download(path.join(UP,f.storedName),f.name)});
+app.delete("/api/files/:id",auth,(r,s)=>{let d=read(),i=d.files.findIndex(x=>x.id===r.params.id);if(i<0)return s.sendStatus(404);let[f]=d.files.splice(i,1),p=path.join(UP,f.storedName);if(fs.existsSync(p))fs.unlinkSync(p);save(d);s.json({ok:true})});
+app.get("/api/health",(r,s)=>s.json({ok:true}));
+app.listen(PORT,()=>console.log("CSE Study Hub: http://localhost:"+PORT));
