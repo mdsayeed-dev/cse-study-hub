@@ -556,3 +556,58 @@ header {
         width: 100%;
     }
 }
+
+/* =========================================================
+   FOLDER EXPLORER
+   ========================================================= */
+
+.folderExplorer {
+    display: grid;
+    gap: 16px;
+}
+
+.explorerHeader {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 14px;
+    color: var(--secondary-text);
+}
+
+.breadcrumb button {
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 4px 6px;
+    font: inherit;
+}
+
+.breadcrumb button:hover {
+    text-decoration: underline;
+}
+
+.explorerFolder {
+    cursor: pointer;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.explorerFolder:hover {
+    transform: translateY(-2px);
+}
+
+.explorerFolder .count {
+    color: var(--secondary-text);
+}
