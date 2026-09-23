@@ -73,10 +73,14 @@ function requireStorage(res) {
 const sessions = new Set();
 
 function auth(req, res, next) {
-  const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+  const token =
+    req.headers.authorization?.replace(/^Bearer\s+/i, "") ||
+    req.headers["x-admin-token"];
+
   if (!token || !sessions.has(token)) {
     return res.status(401).json({ error: "Unauthorized" });
   }
+
   next();
 }
 
