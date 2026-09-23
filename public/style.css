@@ -1,1 +1,529 @@
-*{box-sizing:border-box}body{margin:0;background:#f6f8fc;color:#172033;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif}header{height:76px;background:#101828;color:#fff;padding:0 max(22px,6%);display:flex;align-items:center;justify-content:space-between}.brand{display:flex;gap:12px;align-items:center}.logo{width:42px;height:42px;border-radius:12px;background:#2563eb;display:grid;place-items:center;font-weight:900;font-size:12px}.brand h1{font-size:19px;margin:0}.brand p{font-size:12px;color:#98a2b3;margin:3px 0 0}.ghost{background:transparent;color:#fff;border:1px solid #475467;border-radius:10px;padding:10px 16px;cursor:pointer}.hero{max-width:1120px;margin:30px auto 18px;padding:34px;border-radius:24px;background:linear-gradient(135deg,#fff,#eef4ff);display:flex;justify-content:space-between;align-items:center;border:1px solid #e5eaf2}.pill{font-size:11px;font-weight:800;letter-spacing:1px;color:#2563eb}.hero h2{font-size:36px;line-height:1.12;margin:12px 0}.hero h2 span{color:#2563eb}.hero p{max-width:650px;color:#667085}.heroIcon{font-size:75px}.stats{max-width:1120px;margin:0 auto 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stats div{background:#fff;border:1px solid #eaecf0;border-radius:15px;padding:16px 20px}.stats b{display:block;font-size:22px}.stats small{color:#667085}.toolbar{max-width:1120px;margin:0 auto 18px;display:flex;gap:10px}.search{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d0d5dd;border-radius:12px;padding:0 13px}.search input{border:0;outline:0;width:100%;padding:13px;font-size:15px}.toolbar select{width:220px;border:1px solid #d0d5dd;border-radius:12px;background:#fff;padding:12px}.grid{max-width:1120px;margin:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:15px}.folder{background:#fff;border:1px solid #eaecf0;border-radius:18px;padding:18px;box-shadow:0 4px 18px #10182808}.folderTitle{display:flex;gap:10px;align-items:center;margin-bottom:8px}.folderIcon{font-size:26px}.folder h3{margin:0;font-size:16px}.folder .count{color:#98a2b3;font-size:12px}.file{display:flex;align-items:center;gap:10px;border-top:1px solid #f0f2f5;padding:11px 0}.file a{flex:1;color:#344054;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file a:hover{color:#2563eb}.download{font-size:12px;color:#2563eb}.empty{grid-column:1/-1;text-align:center;padding:50px;background:#fff;border-radius:18px}.modal{position:fixed;inset:0;background:#10182899;display:flex;align-items:center;justify-content:center;padding:18px;z-index:5}.hidden{display:none!important}.card{position:relative;background:#fff;width:min(720px,100%);max-height:90vh;overflow:auto;border-radius:20px;padding:28px}.x{position:absolute;right:15px;top:10px;border:0;background:none;font-size:28px;cursor:pointer}.card input{width:100%;padding:12px;border:1px solid #d0d5dd;border-radius:10px;margin:7px 0 14px}.card label{font-weight:700;font-size:13px}.primary{width:100%;border:0;border-radius:10px;padding:13px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}.muted{color:#667085}.error{color:#d92d20;margin-top:8px}.adminItem{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding:10px 0}.danger{border:0;background:#fee4e2;color:#b42318;padding:7px 10px;border-radius:8px;cursor:pointer}.progress{height:8px;background:#eaecf0;border-radius:20px;margin-top:15px;overflow:hidden}.progress div{height:100%;width:0;background:#2563eb;transition:.2s}#toast{position:fixed;right:20px;bottom:20px;background:#101828;color:#fff;padding:12px 16px;border-radius:10px;display:none}@media(max-width:650px){.hero h2{font-size:28px}.heroIcon{display:none}.stats{grid-template-columns:1fr}.toolbar{flex-direction:column}.toolbar select{width:100%}}
+/* =========================================================
+   CSE STUDY HUB 2.0
+   Main Stylesheet
+   ========================================================= */
+
+
+/* =========================================================
+   1. GLOBAL / RESET
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f6f8fc;
+    color: #172033;
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+}
+
+
+/* =========================================================
+   2. HEADER
+   ========================================================= */
+
+header {
+    height: 76px;
+    background: #101828;
+    color: #ffffff;
+
+    padding: 0 max(22px, 6%);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    width: 42px;
+    height: 42px;
+
+    border-radius: 12px;
+    background: #2563eb;
+
+    display: grid;
+    place-items: center;
+
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.brand h1 {
+    margin: 0;
+    font-size: 19px;
+}
+
+.brand p {
+    margin: 3px 0 0;
+
+    color: #98a2b3;
+    font-size: 12px;
+}
+
+.ghost {
+    padding: 10px 16px;
+
+    background: transparent;
+    color: #ffffff;
+
+    border: 1px solid #475467;
+    border-radius: 10px;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   3. HERO SECTION
+   ========================================================= */
+
+.hero {
+    max-width: 1120px;
+    margin: 30px auto 18px;
+    padding: 34px;
+
+    border: 1px solid #e5eaf2;
+    border-radius: 24px;
+
+    background: linear-gradient(
+        135deg,
+        #ffffff,
+        #eef4ff
+    );
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pill {
+    color: #2563eb;
+
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.hero h2 {
+    margin: 12px 0;
+
+    font-size: 36px;
+    line-height: 1.12;
+}
+
+.hero h2 span {
+    color: #2563eb;
+}
+
+.hero p {
+    max-width: 650px;
+    color: #667085;
+}
+
+.heroIcon {
+    font-size: 75px;
+}
+
+
+/* =========================================================
+   4. STATISTICS
+   ========================================================= */
+
+.stats {
+    max-width: 1120px;
+    margin: 0 auto 18px;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.stats div {
+    padding: 16px 20px;
+
+    background: #ffffff;
+    border: 1px solid #eaecf0;
+    border-radius: 15px;
+}
+
+.stats b {
+    display: block;
+    font-size: 22px;
+}
+
+.stats small {
+    color: #667085;
+}
+
+
+/* =========================================================
+   5. SEARCH & TOOLBAR
+   ========================================================= */
+
+.toolbar {
+    max-width: 1120px;
+    margin: 0 auto 18px;
+
+    display: flex;
+    gap: 10px;
+}
+
+.search {
+    flex: 1;
+
+    padding: 0 13px;
+
+    background: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 12px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search input {
+    width: 100%;
+    padding: 13px;
+
+    border: 0;
+    outline: 0;
+
+    font-size: 15px;
+}
+
+.toolbar select {
+    width: 220px;
+    padding: 12px;
+
+    background: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 12px;
+}
+
+
+/* =========================================================
+   6. FOLDER GRID
+   ========================================================= */
+
+.grid {
+    max-width: 1120px;
+    margin: auto;
+
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fill, minmax(280px, 1fr));
+
+    gap: 15px;
+}
+
+
+/* =========================================================
+   7. FOLDER CARD
+   ========================================================= */
+
+.folder {
+    padding: 18px;
+
+    background: #ffffff;
+    border: 1px solid #eaecf0;
+    border-radius: 18px;
+
+    box-shadow: 0 4px 18px #10182808;
+}
+
+.folderTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 8px;
+}
+
+.folderIcon {
+    font-size: 26px;
+}
+
+.folder h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.folder .count {
+    color: #98a2b3;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   8. FILE ITEMS
+   ========================================================= */
+
+.file {
+    padding: 11px 0;
+
+    border-top: 1px solid #f0f2f5;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.file a {
+    flex: 1;
+
+    color: #344054;
+    text-decoration: none;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file a:hover {
+    color: #2563eb;
+}
+
+.download {
+    color: #2563eb;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   9. EMPTY STATE
+   ========================================================= */
+
+.empty {
+    grid-column: 1 / -1;
+
+    padding: 50px;
+
+    background: #ffffff;
+    border-radius: 18px;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   10. MODAL
+   ========================================================= */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+
+    padding: 18px;
+
+    background: #10182899;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =========================================================
+   11. MODAL CARD
+   ========================================================= */
+
+.card {
+    position: relative;
+
+    width: min(720px, 100%);
+    max-height: 90vh;
+
+    padding: 28px;
+
+    background: #ffffff;
+    border-radius: 20px;
+
+    overflow: auto;
+}
+
+.x {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+
+    border: 0;
+    background: none;
+
+    font-size: 28px;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   12. FORM ELEMENTS
+   ========================================================= */
+
+.card input {
+    width: 100%;
+    margin: 7px 0 14px;
+    padding: 12px;
+
+    border: 1px solid #d0d5dd;
+    border-radius: 10px;
+}
+
+.card label {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   13. BUTTONS
+   ========================================================= */
+
+.primary {
+    width: 100%;
+    padding: 13px;
+
+    border: 0;
+    border-radius: 10px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   14. TEXT UTILITIES
+   ========================================================= */
+
+.muted {
+    color: #667085;
+}
+
+.error {
+    margin-top: 8px;
+    color: #d92d20;
+}
+
+
+/* =========================================================
+   15. ADMIN FILE LIST
+   ========================================================= */
+
+.adminItem {
+    padding: 10px 0;
+
+    border-bottom: 1px solid #eeeeee;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.danger {
+    padding: 7px 10px;
+
+    border: 0;
+    border-radius: 8px;
+
+    background: #fee4e2;
+    color: #b42318;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   16. UPLOAD PROGRESS
+   ========================================================= */
+
+.progress {
+    height: 8px;
+    margin-top: 15px;
+
+    background: #eaecf0;
+    border-radius: 20px;
+
+    overflow: hidden;
+}
+
+.progress div {
+    width: 0;
+    height: 100%;
+
+    background: #2563eb;
+
+    transition: 0.2s;
+}
+
+
+/* =========================================================
+   17. TOAST NOTIFICATION
+   ========================================================= */
+
+#toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+
+    padding: 12px 16px;
+
+    background: #101828;
+    color: #ffffff;
+
+    border-radius: 10px;
+
+    display: none;
+}
+
+
+/* =========================================================
+   18. MOBILE RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+    .hero h2 {
+        font-size: 28px;
+    }
+
+    .heroIcon {
+        display: none;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .toolbar {
+        flex-direction: column;
+    }
+
+    .toolbar select {
+        width: 100%;
+    }
+}
